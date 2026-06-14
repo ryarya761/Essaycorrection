@@ -6,14 +6,21 @@
     <title>作文改错</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             background: #f0f7fc;
             font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
             padding: 30px 20px;
             color: #1e3a4d;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
         .hero {
             background: linear-gradient(135deg, #1f5e7e, #2c7fa0);
             color: white;
@@ -22,13 +29,21 @@
             margin-bottom: 35px;
             text-align: center;
         }
-        .hero h1 { font-size: 2rem; margin-bottom: 8px; }
+        .hero h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
         .essay-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
         }
-        @media (max-width: 950px) { .essay-grid { grid-template-columns: 1fr; gap: 45px; } }
+        @media (max-width: 950px) {
+            .essay-grid {
+                grid-template-columns: 1fr;
+                gap: 45px;
+            }
+        }
         .essay-card {
             background: white;
             border-radius: 36px;
@@ -42,7 +57,11 @@
             padding: 18px 26px;
             border-bottom: 3px solid #ffb347;
         }
-        .essay-header h2 { font-size: 1.6rem; color: #c55a1a; margin-bottom: 10px; }
+        .essay-header h2 {
+            font-size: 1.6rem;
+            color: #c55a1a;
+            margin-bottom: 10px;
+        }
         .stats-bar {
             display: flex;
             justify-content: space-between;
@@ -66,11 +85,23 @@
             cursor: pointer;
             transition: 0.2s;
         }
-        button.primary { background: #4c9f70; color: white; }
-        button.warning { background: #e67e22; color: white; }
-        button:hover { transform: translateY(-2px); filter: brightness(0.96); }
-        .essay-content { padding: 20px 26px 26px; flex: 1; }
-        .editable-essay {
+        button.primary {
+            background: #4c9f70;
+            color: white;
+        }
+        button.warning {
+            background: #e67e22;
+            color: white;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            filter: brightness(0.96);
+        }
+        .essay-content {
+            padding: 20px 26px 26px;
+            flex: 1;
+        }
+        .editable-paragraph {
             background: #fffef9;
             border: 2px solid #e7decf;
             border-radius: 28px;
@@ -80,9 +111,34 @@
             line-height: 1.65;
             white-space: pre-wrap;
             color: #2c3e44;
-            cursor: text;
             max-height: 550px;
             overflow-y: auto;
+        }
+        .error-editor {
+            display: inline-block;
+            background-color: #fff2e6;
+            border-radius: 16px;
+            padding: 2px 8px;
+            margin: 0 2px;
+            font-family: monospace;
+            font-size: 0.95rem;
+            border: 2px solid #e2c29e;
+            outline: none;
+            transition: 0.1s;
+            min-width: 100px;
+            cursor: text;
+        }
+        .error-editor:focus {
+            border-color: #2c7da0;
+            background-color: #fffef5;
+        }
+        .error-editor.correct {
+            border-color: #4c9f70;
+            background-color: #e0f7ef;
+        }
+        .error-editor.wrong {
+            border-color: #e25c5c;
+            background-color: #ffe0db;
         }
         .preview-section {
             margin-top: 20px;
@@ -108,29 +164,43 @@
             white-space: pre-wrap;
             background: #fffdf7;
         }
-        .highlight-correct {
+        .preview-highlight-correct {
             background-color: #c8f0e1;
             color: #1e6f50;
             border-radius: 12px;
             padding: 2px 4px;
             cursor: default;
         }
-        .highlight-wrong {
+        .preview-highlight-wrong {
             background-color: #ffe0db;
             color: #c23b22;
             border-radius: 12px;
             padding: 2px 4px;
-            cursor: help;
-            border-bottom: 1px dotted #c23b22;
+            cursor: pointer;
         }
-        .warning-banner {
-            background: #fff3cd;
-            color: #856404;
-            padding: 12px 18px;
-            border-radius: 20px;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-            border-left: 5px solid #ffc107;
+        .tooltip-box {
+            position: fixed;
+            background: #2c3e50;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            max-width: 300px;
+            z-index: 10000;
+            white-space: normal;
+            word-wrap: break-word;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            pointer-events: none;
+            transition: 0.05s linear;
+        }
+        .tooltip-box::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 20px;
+            border-width: 6px 6px 0;
+            border-style: solid;
+            border-color: #2c3e50 transparent transparent;
         }
         footer {
             text-align: center;
@@ -143,13 +213,13 @@
 <body>
 <div class="container">
     <div class="hero">
-        <h1>✏️ 作文改错</h1>
-        <p>📝 上面自由修改，下面只显示原文+错误修正状态（绿色=改对，红色=未改） </p>
+        <h1>✏️ Essay Correction </h1>
+        <p>📌 尝试把我们讲过的语法点放到作文实战里改一遍吧！</p>
     </div>
 
     <div class="essay-grid">
-        <!-- 作文一 -->
-        <div class="essay-card">
+        <!-- 作文一 动态生成编辑区与预览区 -->
+        <div class="essay-card" id="essay1Card">
             <div class="essay-header">
                 <h2>🐼 作文一 · A Day at the Zoo</h2>
                 <div class="stats-bar">
@@ -161,22 +231,10 @@
                 </div>
             </div>
             <div class="essay-content">
-                <div id="zooEditor" class="editable-essay" contenteditable="true">
-Last Sunday, my family and I went to the city zoo. I was very exciting because I haven't been there for a long time. We arrived to the zoo at nine o'clock in the morning, just when it opened.
-
-The first animal we saw was a giant panda. It spent the whole morning to eat bamboo leaves. I couldn't help to laugh when I saw it rolling around on the grass. The zookeeper told us that pandas spends about twelve hours a day eating. My little sister said she want to be a panda when she grows up.
-
-Next, we visited the penguin area. The reason I love penguins is because they looks so funny when they walk. There was several baby penguins standing near the water. They were afraid from jumping into the cold pool. Suddenly, one brave penguin jumped in, and the others followed it. I took many photos, but most of them were too dark.
-
-After lunch, we went to see the snake house. I am afraid of snakes, so I waited outside while my dad and my brother went in. My brother said the snakes was amazing, but I didn't believe him. Then we walked to the bird section. I saw a colourful parrot that can say "hello" and "goodbye." It reminds me about a pet parrot my grandmother used to have.
-
-At the end of the day, we watched the dolphin show. The dolphins jumped so high, it was incredible. The trainer said that dolphins are one of the smartest animal in the world. I was very tiring after walking around all day, but I felt happy. My mum told us that we should be proud for taking care of the animals and the environment.
-
-This trip taught me something important. Although zoos are fun, but we must also remember to protect animals in the wild. Every time I look at the photos I took that day, I feel grateful for such a wonderful experience. I hope I can go back there again soon.
-                </div>
+                <div id="zooEditable" class="editable-paragraph"></div>
                 <div class="preview-section">
                     <div class="preview-header">
-                        <span>📖 批改预览区（基于原文，只标记错误修正状态）</span>
+                        <span>📖 批改预览区（点击红色区域查看解析）</span>
                         <span>🟢绿色=改对 &nbsp;|&nbsp; 🔴红色=错误/未改</span>
                     </div>
                     <div id="zooPreview" class="preview-content">点击「批改本篇」查看结果</div>
@@ -185,7 +243,7 @@ This trip taught me something important. Although zoos are fun, but we must also
         </div>
 
         <!-- 作文二 -->
-        <div class="essay-card">
+        <div class="essay-card" id="essay2Card">
             <div class="essay-header">
                 <h2>🔬 作文二 · My School Science Fair</h2>
                 <div class="stats-bar">
@@ -197,22 +255,10 @@ This trip taught me something important. Although zoos are fun, but we must also
                 </div>
             </div>
             <div class="essay-content">
-                <div id="fairEditor" class="editable-essay" contenteditable="true">
-I will never forget the day our school held its annual Science Fair. It happened two months ago at the school hall. My best friend Lucas and I decided to join it together. We spent two weeks to prepare our project, which was about how plants grow under different colours of light.
-
-At first, everything went smooth. We bought three small plants and put them in different boxes. One box had red light, another had blue light, and the last one had no special light. We kept to check the plants every morning before class. I found my brave to ask our science teacher, Mr. Chen, for some advice. He was very helpful and even lend us a book about photosynthesis.
-
-On the day of the fair, I felt very nervous. There is hundreds of students and teachers walking around the hall. Everyone in our class were excited but also a little scared. When the judges arrived to our table, my heart started pounding. They asked us many questions, but we answered them confident. Lucas explained how we designed the experiment, and I showed them our results.
-
-The judges looked very interested on our project. One of them said that our idea was very creative. However, they also pointed out a mistake we had made. We forgot to record the temperature in each box, so our data was not complete. I felt a little disappointed, but I knew they were right.
-
-After the fair, we didn't win first prize, but we still felt proud for what we had done. Although we made a mistake, but we learned a valuable lesson. We learned that being careful and accurate is more important than just having a good idea. The reason our project didn't win is because we were too careless with the details.
-
-Now, every time I do an experiment, I always remind myself to record everything carefully. I also learned that failing is not a bad thing — it is a chance to become better. Next year, Lucas and I are already planning our new project. I am sure we will do better, because this experience taught us a lot. I am really looking forward to participate in the next Science Fair.
-                </div>
+                <div id="fairEditable" class="editable-paragraph"></div>
                 <div class="preview-section">
                     <div class="preview-header">
-                        <span>📖 批改预览区（基于原文，只标记错误修正状态）</span>
+                        <span>📖 批改预览区（点击红色区域查看解析）</span>
                         <span>🟢绿色=改对 &nbsp;|&nbsp; 🔴红色=错误/未改</span>
                     </div>
                     <div id="fairPreview" class="preview-content">点击「批改本篇」查看结果</div>
@@ -220,142 +266,59 @@ Now, every time I do an experiment, I always remind myself to record everything 
             </div>
         </div>
     </div>
-    <footer>💡 说明：预览区永远不会显示你的多余修改，只会显示原文中20处错误的修正状态。如果你改对了，变绿；未改或改错，变红；如果你改了正确的地方，顶部会出现黄色警告。</footer>
+    <footer>💡 使用方法：在上方编辑区修改红框内容，点击「批改」后下方预览区显示状态。点击预览区红色错误区域会弹出详细解析。</footer>
 </div>
 
 <script>
-    // ---------- 作文一的 20 个错误定义 (错误短语, 正确短语, 提示) ----------
+    // ---------- 错误定义 ----------
     const zooErrors = [
-        { wrong: "very exciting", correct: "very excited", msg: "人应该用 excited" },
-        { wrong: "haven't been there", correct: "hadn't been there", msg: "过去完成时" },
-        { wrong: "arrived to", correct: "arrived at", msg: "arrive at" },
+        { wrong: "very exciting", correct: "very excited", msg: "形容人的感受应该用 excited，而不是 exciting" },
+        { wrong: "haven't been there", correct: "hadn't been there", msg: "描述过去某个时间点之前未去过，需用过去完成时 hadn't been" },
+        { wrong: "arrived to", correct: "arrived at", msg: "arrive 后接小地点用 at，例如 arrived at the zoo" },
         { wrong: "spent the whole morning to eat", correct: "spent the whole morning eating", msg: "spend + 时间 + doing" },
-        { wrong: "couldn't help to laugh", correct: "couldn't help laughing", msg: "can't help doing" },
-        { wrong: "pandas spends", correct: "pandas spend", msg: "复数主语用 spend" },
-        { wrong: "she want", correct: "she wanted", msg: "过去时 wanted" },
-        { wrong: "is because they looks", correct: "is that they look", msg: "The reason ... is that；look 原形" },
-        { wrong: "There was several", correct: "There were several", msg: "several 复数，用 were" },
-        { wrong: "afraid from", correct: "afraid of", msg: "be afraid of" },
-        { wrong: "snakes was", correct: "snakes were", msg: "snakes 复数" },
-        { wrong: "reminds me about", correct: "reminds me of", msg: "remind of" },
-        { wrong: "smartest animal", correct: "smartest animals", msg: "one of + 复数名词" },
-        { wrong: "very tiring", correct: "very tired", msg: "人 tired" },
-        { wrong: "proud for", correct: "proud of", msg: "be proud of" },
-        { wrong: "Although zoos are fun, but", correct: "Although zoos are fun, we must", msg: "删除 but" },
-        { wrong: "can say", correct: "could say", msg: "过去时用 could" },
-        { wrong: "so high, it was", correct: "so high that it was", msg: "so...that 结构" },
-        { wrong: "very exciting", correct: "very excited", msg: "人 excited" }, // 重复（针对另一处）
-        { wrong: "is because they looks", correct: "is that they look", msg: "Reason 后接 that" }
+        { wrong: "couldn't help to laugh", correct: "couldn't help laughing", msg: "can't help doing 表示忍不住做某事" },
+        { wrong: "pandas spends", correct: "pandas spend", msg: "pandas 是复数，谓语动词应用 spend" },
+        { wrong: "she want", correct: "she wanted", msg: "根据上下文，此句为过去时，应用 wanted" },
+        { wrong: "is because they looks", correct: "is that they look", msg: "The reason...is that... 且 they look 不用三单" },
+        { wrong: "There was several", correct: "There were several", msg: "several baby penguins 是复数，应用 were" },
+        { wrong: "afraid from", correct: "afraid of", msg: "固定搭配 be afraid of" },
+        { wrong: "snakes was", correct: "snakes were", msg: "snakes 复数，谓语用 were" },
+        { wrong: "reminds me about", correct: "reminds me of", msg: "remind sb of sth 固定搭配" },
+        { wrong: "smartest animal", correct: "smartest animals", msg: "one of the + 最高级 + 复数名词" },
+        { wrong: "very tiring", correct: "very tired", msg: "人感到疲倦用 tired" },
+        { wrong: "proud for", correct: "proud of", msg: "be proud of 固定搭配" },
+        { wrong: "Although zoos are fun, but", correct: "Although zoos are fun, we must", msg: "although 和 but 不能同时使用，删除 but" },
+        { wrong: "can say", correct: "could say", msg: "描述过去的能力，用 could say" },
+        { wrong: "so high, it was", correct: "so high that it was", msg: "so...that... 结构，不用逗号" },
+        { wrong: "very exciting", correct: "very excited", msg: "形容人的感受用 excited" },
+        { wrong: "is because they looks", correct: "is that they look", msg: "reason 后接 that 从句" }
     ];
 
-    // 作文二的 20 个错误
     const fairErrors = [
         { wrong: "spent two weeks to prepare", correct: "spent two weeks preparing", msg: "spend + time + doing" },
-        { wrong: "went smooth", correct: "went smoothly", msg: "副词修饰动词" },
-        { wrong: "kept to check", correct: "kept checking", msg: "keep doing" },
-        { wrong: "found my brave", correct: "found my courage", msg: "名词 courage" },
-        { wrong: "lend us a book", correct: "lent us a book", msg: "过去时 lent" },
-        { wrong: "There is hundreds", correct: "There were hundreds", msg: "复数 were" },
-        { wrong: "everyone in our class were", correct: "everyone in our class was", msg: "everyone 单数" },
-        { wrong: "arrived to", correct: "arrived at", msg: "arrive at" },
-        { wrong: "answered them confident", correct: "answered them confidently", msg: "副词 confidently" },
-        { wrong: "interested on", correct: "interested in", msg: "interested in" },
-        { wrong: "proud for", correct: "proud of", msg: "proud of" },
+        { wrong: "went smooth", correct: "went smoothly", msg: "副词 smoothly 修饰动词 went" },
+        { wrong: "kept to check", correct: "kept checking", msg: "keep doing 持续做某事" },
+        { wrong: "found my brave", correct: "found my courage", msg: "brave 是形容词，这里需要名词 courage" },
+        { wrong: "lend us a book", correct: "lent us a book", msg: "描述过去的事情，用过去式 lent" },
+        { wrong: "There is hundreds", correct: "There were hundreds", msg: "hundreds 为复数，用 were" },
+        { wrong: "everyone in our class were", correct: "everyone in our class was", msg: "everyone 为单数，谓语用 was" },
+        { wrong: "arrived to", correct: "arrived at", msg: "arrive at 到达某地" },
+        { wrong: "answered them confident", correct: "answered them confidently", msg: "副词修饰动词 answered" },
+        { wrong: "interested on", correct: "interested in", msg: "be interested in 固定搭配" },
+        { wrong: "proud for", correct: "proud of", msg: "be proud of 固定搭配" },
         { wrong: "Although we made a mistake, but", correct: "Although we made a mistake, we learned", msg: "去掉 but" },
-        { wrong: "is because we were too careless", correct: "is that we were too careless", msg: "reason is that" },
-        { wrong: "looking forward to participate", correct: "looking forward to participating", msg: "to 是介词，后加 doing" },
-        { wrong: "interested on", correct: "interested in", msg: "interested in" },
-        { wrong: "answered them confident", correct: "answered them confidently", msg: "副词" },
-        { wrong: "even lend us", correct: "even lent us", msg: "过去时 lent" },
-        { wrong: "is because we were too careless", correct: "is that we were too careless", msg: "reason is that" },
-        { wrong: "looking forward to participate", correct: "looking forward to participating", msg: "介词 to + doing" },
-        { wrong: "being careful and accurate is", correct: "being careful and accurate is", msg: "正确占位" }
+        { wrong: "is because we were too careless", correct: "is that we were too careless", msg: "The reason...is that..." },
+        { wrong: "looking forward to participate", correct: "looking forward to participating", msg: "to 是介词，后接名词或动名词" },
+        { wrong: "interested on", correct: "interested in", msg: "be interested in" },
+        { wrong: "answered them confident", correct: "answered them confidently", msg: "副词 confidently" },
+        { wrong: "even lend us", correct: "even lent us", msg: "过去式 lent" },
+        { wrong: "is because we were too careless", correct: "is that we were too careless", msg: "reason...is that" },
+        { wrong: "looking forward to participate", correct: "looking forward to participating", msg: "to 介词 + doing" },
+        { wrong: "being careful and accurate is", correct: "being careful and accurate is", msg: "本句正确，无需修改（占位）" }
     ];
 
-    // ========== 核心函数：基于原文生成高亮预览（标记用户是否已改正每个错误）==========
-    function buildPreviewFromOriginal(originalText, userText, errorList) {
-        let result = originalText;
-        // 需要从后往前替换，避免替换后影响其他错误的位置
-        for (let i = errorList.length - 1; i >= 0; i--) {
-            const err = errorList[i];
-            // 判断用户是否已经把这个错误改对了：用户文本中包含正确短语，且不包含错误短语
-            const userHasCorrect = userText.includes(err.correct);
-            const userHasWrong = userText.includes(err.wrong);
-            const isFixed = (userHasCorrect && !userHasWrong);
-            const phraseToHighlight = isFixed ? err.correct : err.wrong;
-            const colorClass = isFixed ? 'highlight-correct' : 'highlight-wrong';
-            const title = isFixed ? '' : `❌ 应改为: ${err.correct} (${err.msg})`;
-            const escaped = phraseToHighlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(${escaped})`, 'g');
-            // 注意：这里替换的是 originalText 的副本，因为 originalText 包含错误形式
-            result = result.replace(regex, `<span class="${colorClass}" title="${title}">$1</span>`);
-        }
-        return result;
-    }
-
-    // ========== 检测额外修改（用户是否改了不该改的地方） ==========
-    function detectExtraChanges(original, user, errorList) {
-        let cleanOrig = original;
-        let cleanUser = user;
-        for (let err of errorList) {
-            const wrongRegex = new RegExp(err.wrong.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-            const correctRegex = new RegExp(err.correct.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-            cleanOrig = cleanOrig.replace(wrongRegex, '___MARK___').replace(correctRegex, '___MARK___');
-            cleanUser = cleanUser.replace(wrongRegex, '___MARK___').replace(correctRegex, '___MARK___');
-        }
-        const normalize = (s) => s.replace(/\s+/g, ' ').trim();
-        return normalize(cleanOrig) !== normalize(cleanUser);
-    }
-
-    // ========== 主批改函数 ==========
-    function checkEssay(editorId, errorList, originalText, countSpanId, previewId, warningId) {
-        const editor = document.getElementById(editorId);
-        const userText = editor.innerText;   // 用户修改后的内容
-
-        // 1. 计算正确数量
-        let correctCount = 0;
-        for (let err of errorList) {
-            const userHasCorrect = userText.includes(err.correct);
-            const userHasWrong = userText.includes(err.wrong);
-            if (userHasCorrect && !userHasWrong) {
-                correctCount++;
-            }
-        }
-        document.getElementById(countSpanId).innerText = correctCount;
-
-        // 2. 检测额外修改（用户修改了非错误区域）
-        const hasExtra = detectExtraChanges(originalText, userText, errorList);
-        const warningDiv = document.getElementById(warningId);
-        if (hasExtra) {
-            warningDiv.innerHTML = '<div class="warning-banner">⚠️ 警告：您修改了原本正确的地方（非红色错误区域），请只改正上方红色高亮的20处错误。</div>';
-        } else {
-            warningDiv.innerHTML = '';
-        }
-
-        // 3. 生成预览（基于原文，只标注错误修正状态）
-        const previewHtml = buildPreviewFromOriginal(originalText, userText, errorList);
-        document.getElementById(previewId).innerHTML = previewHtml;
-
-        // 4. 全部正确时放烟花
-        if (correctCount === errorList.length) {
-            canvasConfetti({ particleCount: 180, spread: 80, origin: { y: 0.5 } });
-            setTimeout(() => canvasConfetti({ particleCount: 100, spread: 55 }), 150);
-            if (warningDiv) warningDiv.innerHTML = '<div class="warning-banner" style="background:#d4edda; color:#155724;">🎉 完美！所有20处错误都已改对！</div>';
-        }
-    }
-
-    // 重置函数
-    function resetEssay(editorId, originalText, previewId, countSpanId, warningId) {
-        const editor = document.getElementById(editorId);
-        editor.innerText = originalText;
-        document.getElementById(previewId).innerHTML = '点击「批改本篇」查看结果';
-        document.getElementById(countSpanId).innerText = '0';
-        const warningDiv = document.getElementById(warningId);
-        if (warningDiv) warningDiv.innerHTML = '';
-    }
-
-    // ----- 原始文本常量（与初始编辑框内容严格一致）-----
-    const zooOriginal = `Last Sunday, my family and I went to the city zoo. I was very exciting because I haven't been there for a long time. We arrived to the zoo at nine o'clock in the morning, just when it opened.
+    // 原始完整文本（用于重置）
+    const zooFullText = `Last Sunday, my family and I went to the city zoo. I was very exciting because I haven't been there for a long time. We arrived to the zoo at nine o'clock in the morning, just when it opened.
 
 The first animal we saw was a giant panda. It spent the whole morning to eat bamboo leaves. I couldn't help to laugh when I saw it rolling around on the grass. The zookeeper told us that pandas spends about twelve hours a day eating. My little sister said she want to be a panda when she grows up.
 
@@ -367,7 +330,7 @@ At the end of the day, we watched the dolphin show. The dolphins jumped so high,
 
 This trip taught me something important. Although zoos are fun, but we must also remember to protect animals in the wild. Every time I look at the photos I took that day, I feel grateful for such a wonderful experience. I hope I can go back there again soon.`;
 
-    const fairOriginal = `I will never forget the day our school held its annual Science Fair. It happened two months ago at the school hall. My best friend Lucas and I decided to join it together. We spent two weeks to prepare our project, which was about how plants grow under different colours of light.
+    const fairFullText = `I will never forget the day our school held its annual Science Fair. It happened two months ago at the school hall. My best friend Lucas and I decided to join it together. We spent two weeks to prepare our project, which was about how plants grow under different colours of light.
 
 At first, everything went smooth. We bought three small plants and put them in different boxes. One box had red light, another had blue light, and the last one had no special light. We kept to check the plants every morning before class. I found my brave to ask our science teacher, Mr. Chen, for some advice. He was very helpful and even lend us a book about photosynthesis.
 
@@ -379,24 +342,155 @@ After the fair, we didn't win first prize, but we still felt proud for what we h
 
 Now, every time I do an experiment, I always remind myself to record everything carefully. I also learned that failing is not a bad thing — it is a chance to become better. Next year, Lucas and I are already planning our new project. I am sure we will do better, because this experience taught us a lot. I am really looking forward to participate in the next Science Fair.`;
 
-    // 为预览区添加警告容器
-    const zooPreviewDiv = document.getElementById("zooPreview");
-    const fairPreviewDiv = document.getElementById("fairPreview");
-    zooPreviewDiv.insertAdjacentHTML('afterbegin', '<div id="zooWarning"></div>');
-    fairPreviewDiv.insertAdjacentHTML('afterbegin', '<div id="fairWarning"></div>');
+    // 构建可编辑区域（每个错误独立span）
+    function buildEditableArea(containerId, fullText, errorList) {
+        let html = fullText;
+        const placeholders = [];
+        for (let i = 0; i < errorList.length; i++) {
+            const err = errorList[i];
+            const placeholder = `___ERR_${i}___`;
+            placeholders.push({ placeholder, err, index: i });
+            html = html.replace(err.wrong, placeholder);
+        }
+        let finalHtml = html;
+        for (let item of placeholders) {
+            finalHtml = finalHtml.replace(item.placeholder, `<span class="error-editor" data-err-index="${item.index}" contenteditable="true">${item.err.wrong}</span>`);
+        }
+        finalHtml = finalHtml.replace(/\n/g, '<br>');
+        document.getElementById(containerId).innerHTML = finalHtml;
+        // 存储元数据
+        const editors = document.querySelectorAll(`#${containerId} .error-editor`);
+        editors.forEach(editor => {
+            const idx = parseInt(editor.getAttribute('data-err-index'));
+            if (!isNaN(idx)) {
+                editor.setAttribute('data-correct', errorList[idx].correct);
+                editor.setAttribute('data-msg', errorList[idx].msg);
+                editor.setAttribute('data-wrong', errorList[idx].wrong);
+            }
+        });
+        // 注意：编辑区不添加任何点击浮层
+    }
 
-    // 绑定按钮事件
-    document.getElementById("checkZooBtn").addEventListener("click", () => {
-        checkEssay("zooEditor", zooErrors, zooOriginal, "zooCorrectCount", "zooPreview", "zooWarning");
+    // 预览区点击浮层绑定（通过事件委托）
+    function bindPreviewTooltips(previewId) {
+        const previewDiv = document.getElementById(previewId);
+        if (!previewDiv) return;
+        previewDiv.removeEventListener('click', previewClickHandler);
+        previewDiv.addEventListener('click', previewClickHandler);
+    }
+
+    function previewClickHandler(e) {
+        let target = e.target;
+        if (target.classList && target.classList.contains('preview-highlight-wrong')) {
+            const msg = target.getAttribute('data-preview-msg');
+            const correct = target.getAttribute('data-preview-correct');
+            if (msg) {
+                showTooltipNearElement(target, `❌ 应改为: ${correct}\n📖 ${msg}`);
+            } else {
+                showTooltipNearElement(target, '请先点击「批改本篇」生成批改结果');
+            }
+        } else if (target.classList && target.classList.contains('preview-highlight-correct')) {
+            // 改对的也可以点击提示（可选）
+            showTooltipNearElement(target, '✅ 正确！无需修改');
+        }
+    }
+
+    // 精准浮层：基于元素位置显示
+    let activeTooltip = null;
+    function showTooltipNearElement(element, text) {
+        if (activeTooltip) {
+            activeTooltip.remove();
+            activeTooltip = null;
+        }
+        const rect = element.getBoundingClientRect();
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip-box';
+        tooltip.innerText = text;
+        document.body.appendChild(tooltip);
+        const tooltipRect = tooltip.getBoundingClientRect();
+        let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+        let top = rect.top - tooltipRect.height - 8;
+        if (top < 10) {
+            top = rect.bottom + 8;
+        }
+        if (left < 10) left = 10;
+        if (left + tooltipRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - tooltipRect.width - 10;
+        }
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+        activeTooltip = tooltip;
+        setTimeout(() => {
+            if (activeTooltip) {
+                activeTooltip.remove();
+                activeTooltip = null;
+            }
+        }, 3000);
+    }
+
+    // 批改函数
+    function checkEssay(containerId, errorList, previewId, countSpanId) {
+        const editors = document.querySelectorAll(`#${containerId} .error-editor`);
+        let correctCount = 0;
+        editors.forEach(editor => {
+            const userVal = editor.innerText.trim();
+            const correctVal = editor.getAttribute('data-correct');
+            const isCorrect = (userVal === correctVal);
+            if (isCorrect) {
+                editor.classList.add('correct');
+                editor.classList.remove('wrong');
+                correctCount++;
+            } else {
+                editor.classList.add('wrong');
+                editor.classList.remove('correct');
+            }
+        });
+        document.getElementById(countSpanId).innerText = correctCount;
+
+        // 生成预览区
+        let previewHtml = (containerId === 'zooEditable') ? zooFullText : fairFullText;
+        for (let i = 0; i < errorList.length; i++) {
+            const err = errorList[i];
+            const editor = document.querySelector(`#${containerId} .error-editor[data-err-index="${i}"]`);
+            const isCorrect = editor && editor.classList.contains('correct');
+            const phraseToShow = isCorrect ? err.correct : err.wrong;
+            const colorClass = isCorrect ? 'preview-highlight-correct' : 'preview-highlight-wrong';
+            const msgAttr = isCorrect ? '' : ` data-preview-msg="${err.msg.replace(/"/g, '&quot;')}" data-preview-correct="${err.correct.replace(/"/g, '&quot;')}"`;
+            const span = `<span class="${colorClass}"${msgAttr}>${phraseToShow}</span>`;
+            previewHtml = previewHtml.replace(err.wrong, span);
+        }
+        previewHtml = previewHtml.replace(/\n/g, '<br>');
+        document.getElementById(previewId).innerHTML = previewHtml;
+        bindPreviewTooltips(previewId);
+
+        if (correctCount === errorList.length) {
+            canvasConfetti({ particleCount: 180, spread: 80, origin: { y: 0.5 } });
+            setTimeout(() => canvasConfetti({ particleCount: 100, spread: 55 }), 150);
+        }
+    }
+
+    function resetEssay(containerId, fullText, errorList, previewId, countSpanId) {
+        buildEditableArea(containerId, fullText, errorList);
+        document.getElementById(previewId).innerHTML = '点击「批改本篇」查看结果';
+        document.getElementById(countSpanId).innerText = '0';
+    }
+
+    // 初始化
+    buildEditableArea('zooEditable', zooFullText, zooErrors);
+    buildEditableArea('fairEditable', fairFullText, fairErrors);
+
+    // 绑定按钮
+    document.getElementById('checkZooBtn').addEventListener('click', () => {
+        checkEssay('zooEditable', zooErrors, 'zooPreview', 'zooCorrectCount');
     });
-    document.getElementById("resetZooBtn").addEventListener("click", () => {
-        resetEssay("zooEditor", zooOriginal, "zooPreview", "zooCorrectCount", "zooWarning");
+    document.getElementById('resetZooBtn').addEventListener('click', () => {
+        resetEssay('zooEditable', zooFullText, zooErrors, 'zooPreview', 'zooCorrectCount');
     });
-    document.getElementById("checkFairBtn").addEventListener("click", () => {
-        checkEssay("fairEditor", fairErrors, fairOriginal, "fairCorrectCount", "fairPreview", "fairWarning");
+    document.getElementById('checkFairBtn').addEventListener('click', () => {
+        checkEssay('fairEditable', fairErrors, 'fairPreview', 'fairCorrectCount');
     });
-    document.getElementById("resetFairBtn").addEventListener("click", () => {
-        resetEssay("fairEditor", fairOriginal, "fairPreview", "fairCorrectCount", "fairWarning");
+    document.getElementById('resetFairBtn').addEventListener('click', () => {
+        resetEssay('fairEditable', fairFullText, fairErrors, 'fairPreview', 'fairCorrectCount');
     });
 </script>
 </body>
